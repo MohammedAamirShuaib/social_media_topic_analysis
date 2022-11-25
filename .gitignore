@@ -1,0 +1,7 @@
+.google-cookie
+env.yml
+sme
+extractor/__pycache__
+extractor/config.ini
+Topics/*
+notebooks
