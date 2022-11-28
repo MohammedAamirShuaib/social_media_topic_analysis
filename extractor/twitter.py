@@ -25,7 +25,7 @@ def get_tweets(query, count: int = 100):
         q=query, lang="en", count=count, tweet_mode="extended")
 
     users_locs = [[
-        tweet.created_at,
+        str(tweet.created_at),
         tweet.user.location,
         tweet.user.screen_name,
         tweet.retweeted_status.full_text if tweet.full_text.startswith(

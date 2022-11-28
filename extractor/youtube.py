@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from openpyxl import load_workbook
 import configparser
+import time
 
 
 def read_config():
@@ -23,6 +24,7 @@ def get_video(query, links):
             print("Connection Error")
         yt.streams.filter(progressive=True, file_extension='mp4').order_by(
             'resolution').asc().first().download(SAVE_PATH)
+        time.sleep(5)
 
 
 # -------------------------------------------Transcribing Youtube Videos--------------------------------------

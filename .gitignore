@@ -2,6 +2,6 @@
 env.yml
 sme
 extractor/__pycache__
-extractor/config.ini
+config.ini
 Topics/*
 notebooks
