@@ -222,7 +222,9 @@ def get_data_from_URLs(query, url_list, recency, tables=False):
     url_count = 1
     folder_name = query.replace(" ", "")
     main_file_name = "Topics/"+folder_name+"/Data/"+folder_name+".xlsx"
-    writer = pd.ExcelWriter(main_file_name, engine='xlsxwriter')
+    ExcelWorkbook = load_workbook(main_file_name)
+    writer = pd.ExcelWriter(main_file_name, engine='openpyxl')
+    writer.book = ExcelWorkbook
     print('Extracting data from URLs..')
     for url in url_list:
         print("Next URL to webscrape is - ", url)
@@ -291,7 +293,8 @@ def get_data_from_URLs(query, url_list, recency, tables=False):
     del main_df['Data with bs4']
     del main_df['Tables(if any)']
     main_df['Search Terms'] = query
-    main_df.to_excel(writer, sheet_name=main_sheet_name, encoding='utf-8-sig')
+    main_df.to_excel(writer, index=False,
+                     sheet_name=main_sheet_name, encoding='utf-8-sig')
     writer.save()
     writer.close()
     return main_file_name

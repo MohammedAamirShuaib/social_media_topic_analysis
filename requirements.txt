@@ -27,3 +27,4 @@ transformers
 pydub
 seaborn
 ffmpeg-python
+html_table_parser
