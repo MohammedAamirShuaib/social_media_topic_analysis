@@ -1,4 +1,5 @@
 import tweepy as tw
+import os
 import pandas as pd
 from openpyxl import load_workbook
 import configparser
@@ -11,6 +12,7 @@ def read_config():
 
 
 def get_tweets(query, count: int = 100):
+    print("Extracting Data from Twitter on " + query)
     config = read_config()
     auth = tw.OAuthHandler(
         config['Twitter']['consumer_key'],
@@ -35,11 +37,15 @@ def get_tweets(query, count: int = 100):
     twitterDf = pd.DataFrame(data=users_locs, columns=[
                              'datetime', "location", "user", "tweet", "hashtags"])
 
-    FilePath = "Topics/" + \
+    main_file_name = "Topics/" + \
         query.replace(" ", "")+"/Data/"+query.replace(" ", "")+".xlsx"
-    ExcelWorkbook = load_workbook(FilePath)
-    writer = pd.ExcelWriter(FilePath, engine='openpyxl')
-    writer.book = ExcelWorkbook
+    if os.path.exists(main_file_name):
+        ExcelWorkbook = load_workbook(main_file_name)
+        writer = pd.ExcelWriter(main_file_name, engine='openpyxl')
+        writer.book = ExcelWorkbook
+    else:
+        writer = pd.ExcelWriter(main_file_name, engine='xlsxwriter')
     twitterDf.to_excel(writer, index=False, sheet_name="Twitter")
     writer.save()
     writer.close()
+    print("Twitter Extraction on "+query+" is complete")

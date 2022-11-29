@@ -222,12 +222,14 @@ def get_data_from_URLs(query, url_list, recency, tables=False):
     url_count = 1
     folder_name = query.replace(" ", "")
     main_file_name = "Topics/"+folder_name+"/Data/"+folder_name+".xlsx"
-    ExcelWorkbook = load_workbook(main_file_name)
-    writer = pd.ExcelWriter(main_file_name, engine='openpyxl')
-    writer.book = ExcelWorkbook
+    if os.path.exists(main_file_name):
+        ExcelWorkbook = load_workbook(main_file_name)
+        writer = pd.ExcelWriter(main_file_name, engine='openpyxl')
+        writer.book = ExcelWorkbook
+    else:
+        writer = pd.ExcelWriter(main_file_name, engine='xlsxwriter')
     print('Extracting data from URLs..')
     for url in url_list:
-        print("Next URL to webscrape is - ", url)
         try:
             put_url = url
             try:
@@ -280,8 +282,6 @@ def get_data_from_URLs(query, url_list, recency, tables=False):
             put_data2 = remove_multiple_whitespaces(put_data2)
             main_df.loc[len(main_df)] = [put_url, put_title, put_keywords,
                                          put_publishdate, put_data, put_data2, put_tables]
-            print('Extracted data from URL - ',
-                  str(url_count) + str(' - ') + str(url))
             url_count += 1
         except Exception as e:
             print(e)

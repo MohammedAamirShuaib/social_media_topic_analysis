@@ -1,4 +1,5 @@
 import praw
+import os
 import pandas as pd
 from praw.models import MoreComments
 from openpyxl import load_workbook
@@ -31,6 +32,7 @@ def get_comments(url):
 
 def get_reddit(query, count: int = 100):
     config = read_config()
+    print("Extracting Data from Reddit Posts for "+query)
     reddit = praw.Reddit(client_id=config['Reddit']['client_id'],
                          client_secret=config['Reddit']['client_secret'],
                          user_agent=config['Reddit']['user_agent'])
@@ -52,11 +54,14 @@ def get_reddit(query, count: int = 100):
     top_posts['comments'] = top_posts['Post URL'].apply(
         lambda x: get_comments(x))
 
-    FilePath = "Topics/"+query+"/Data/"+query+".xlsx"
-    ExcelWorkbook = load_workbook(FilePath)
-    writer = pd.ExcelWriter(FilePath, engine='openpyxl')
-    writer.book = ExcelWorkbook
+    main_file_name = "Topics/"+query+"/Data/"+query+".xlsx"
+    if os.path.exists(main_file_name):
+        ExcelWorkbook = load_workbook(main_file_name)
+        writer = pd.ExcelWriter(main_file_name, engine='openpyxl')
+        writer.book = ExcelWorkbook
+    else:
+        writer = pd.ExcelWriter(main_file_name, engine='xlsxwriter')
     top_posts.to_excel(writer, index=False, sheet_name="Reddit")
     writer.save()
     writer.close()
-    return True
+    print("Reddit Extraction for "+query+" is complete")

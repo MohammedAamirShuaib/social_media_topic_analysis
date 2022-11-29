@@ -291,5 +291,8 @@ def Get_Emotions(audio_filepath, start_time, end_time, utter, model):
 
 
 def emotion_results(dict, emotion):
-    score = dict[emotion]
-    return score
+    try:
+        score = dict[emotion]
+        return score
+    except:
+        return None

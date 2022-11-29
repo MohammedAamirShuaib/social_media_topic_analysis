@@ -5,6 +5,8 @@ import os
 from openpyxl import load_workbook
 import configparser
 import time
+from extractor.ser_functions import *
+from extractor.ser_functions import Get_Emotions, emotion_results
 
 
 def read_config():
@@ -43,7 +45,6 @@ def get_url(token, fname):
                              headers=headers,
                              data=read_file(fname))
     url = response.json()["upload_url"]
-    print("Uploaded File and got temporary URL to file")
     return url
 
 
@@ -59,7 +60,6 @@ def get_transcribe_id(token, url):
     }
     response = requests.post(endpoint, json=json, headers=headers)
     id = response.json()['id']
-    print("Made request and file is currently queued")
     return id
 
 
@@ -104,27 +104,58 @@ def json_data_extraction(result, fname):
 # ---------------------------------------------Main Function---------------------------------------
 
 
-def get_youtube(query, links):
-    get_video(query, links)
+def get_youtube(query, links, download: bool = True, get_emotions: bool = False, model: str = 'BERT_PT'):
+    if download:
+        print("Downloading YouTube Videos")
+        get_video(query, links)
+        print("Download Complete")
     config = read_config()
     files = os.listdir("Topics/"+query+"/videos/")
     for file in files:
         fname = "Topics/"+query+"/videos/"+file
         tid = upload_file(config['YouTube']['token'], fname)
         result = {}
-        print('starting to transcribe the file: [ {} ]'.format(fname))
-        print('Processing the file: [ {} ]'.format(fname))
+        print('Transcribing file: [ {} ]'.format(fname))
         while result.get("status") != 'completed':
             result = get_text(config['YouTube']['token'], tid)
 
         df = json_data_extraction(result, fname)
+        if get_emotions:
+            print('Extracting Emotions')
+            df = generate_emotions(df, model)
 
-        FilePath = "Topics/"+query+"/Data/"+query+".xlsx"
-        ExcelWorkbook = load_workbook(FilePath)
-        writer = pd.ExcelWriter(FilePath, engine='openpyxl')
-        writer.book = ExcelWorkbook
+        main_file_name = "Topics/"+query+"/Data/"+query+".xlsx"
+        if os.path.exists(main_file_name):
+            ExcelWorkbook = load_workbook(main_file_name)
+            writer = pd.ExcelWriter(main_file_name, engine='openpyxl')
+            writer.book = ExcelWorkbook
+        else:
+            writer = pd.ExcelWriter(main_file_name, engine='xlsxwriter')
         df.to_excel(writer, index=False, sheet_name="YouTube_video_" +
                     str(files.index(file)+1))
         writer.save()
         writer.close()
-    return True
+        print('Data Extraction Complete: [ {} ]'.format(fname))
+
+
+def generate_emotions(df, model):
+    df['model'] = model
+    df['Emotion'] = df.apply(lambda x: Get_Emotions(
+        x['file_name'], x['start_time'], x['end_time'], x['utter'], x['model']), axis=1)
+    if model == "HuggingFace":
+        df['angry'] = df['Emotion'].apply(lambda x: emotion_results(x, "ang"))
+        df['happy'] = df['Emotion'].apply(lambda x: emotion_results(x, "hap"))
+        df['sad'] = df['Emotion'].apply(lambda x: emotion_results(x, "sad"))
+        df['neutral'] = df['Emotion'].apply(
+            lambda x: emotion_results(x, "neu"))
+        df['excited'] = df['Emotion'].apply(
+            lambda x: emotion_results(x, "exc"))
+        df.drop(['Emotion'], axis=1, inplace=True)
+    if model == "BERT_PT":
+        df['angry'] = df['Emotion'].apply(lambda x: emotion_results(x, "ang"))
+        df['happy'] = df['Emotion'].apply(lambda x: emotion_results(x, "hap"))
+        df['sad'] = df['Emotion'].apply(lambda x: emotion_results(x, "sad"))
+        df['neutral'] = df['Emotion'].apply(
+            lambda x: emotion_results(x, "neu"))
+        df.drop(['Emotion'], axis=1, inplace=True)
+    return df
