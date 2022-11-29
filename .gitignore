@@ -5,3 +5,4 @@ extractor/__pycache__
 config.ini
 Topics/*
 notebooks
+models/*
