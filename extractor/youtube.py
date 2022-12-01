@@ -142,7 +142,7 @@ def generate_emotions(df, model):
     df['model'] = model
     df['Emotion'] = df.apply(lambda x: Get_Emotions(
         x['file_name'], x['start_time'], x['end_time'], x['utter'], x['model']), axis=1)
-    if model == "HuggingFace":
+    if model == "BERT_PT":
         df['angry'] = df['Emotion'].apply(lambda x: emotion_results(x, "ang"))
         df['happy'] = df['Emotion'].apply(lambda x: emotion_results(x, "hap"))
         df['sad'] = df['Emotion'].apply(lambda x: emotion_results(x, "sad"))
@@ -151,7 +151,7 @@ def generate_emotions(df, model):
         df['excited'] = df['Emotion'].apply(
             lambda x: emotion_results(x, "exc"))
         df.drop(['Emotion'], axis=1, inplace=True)
-    if model == "BERT_PT":
+    if model == "HuggingFace":
         df['angry'] = df['Emotion'].apply(lambda x: emotion_results(x, "ang"))
         df['happy'] = df['Emotion'].apply(lambda x: emotion_results(x, "hap"))
         df['sad'] = df['Emotion'].apply(lambda x: emotion_results(x, "sad"))
